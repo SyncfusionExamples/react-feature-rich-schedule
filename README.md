@@ -13,7 +13,12 @@ Make sure that you have the compatible versions of [Visual Studio Code](https://
 
 1. Clone the react-feature-rich-schedule repository.
 2. Run the `npm install` command to install the required packages
-3. Replace YOUR_LICENSE_KEY in the index.tsx file with your license key.
+3. Replace YOUR_LICENSE_KEY in registerLicense method of the index.tsx file with your license key.
+
+<p align="center"> 
+<img src="src/assets/images/register-license.png" alt="React Schedule Preview"/>
+</p>
+
 4. Run your project using the `npm start` command.
 
 ## Further help
