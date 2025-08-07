@@ -5129,7 +5129,7 @@ export const App = () => {
         <div className='download-button-container'>
           <a
             id="download-now-button"
-            href="https://www.syncfusion.com/downloads/react?tag=es-livesample-react-featurerich-schedule" className="btn btn-free bold free-trial-gtag-sep15"
+            href="https://www.syncfusion.com/downloads/react" className="btn btn-free bold free-trial-gtag-sep15"
           >
             <span className="btn__text">TRY IT FREE</span>
           </a>
@@ -5744,7 +5744,7 @@ export const App = () => {
                 <div id="tryfreebutton" className="desktop-only">
                   <a
                     id="download-now-button" target="_blank"
-                    href="https://www.syncfusion.com/downloads/react?tag=es-livesample-react-featurerich-schedule"
+                    href="https://www.syncfusion.com/downloads/react"
                     className="menu-item btn btn-primary"
                   >
                     <span className="tryfree">TRY IT FREE</span>
@@ -5820,7 +5820,7 @@ export const App = () => {
             <div className="mobile-only">
               <a
                 id="download-now-button" target="_blank"
-                href="https://www.syncfusion.com/downloads/react?tag=es-livesample-react-featurerich-schedule"
+                href="https://www.syncfusion.com/downloads/react"
                 className="btn btn-free bold free-trial-gtag-sep15"
               >
                 <span className="tryfree">TRY IT FREE</span>
