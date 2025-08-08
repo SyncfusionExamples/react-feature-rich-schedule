@@ -2,7 +2,7 @@ import React from 'react';
 import './App.css';
 import { Fragment, useEffect, useRef, useState, useCallback, useMemo } from 'react';
 import { ScheduleComponent, Day, Week, WorkWeek, Month, Year, TimelineViews, TimelineMonth, TimelineYear, ViewsDirective, ViewDirective, ResourcesDirective, ResourceDirective, Inject, Resize, DragAndDrop, Agenda, MonthAgenda, Print, ExcelExport, ICalendarImport, ICalendarExport, View, ResourcesModel, CellClickEventArgs, ResourceDetails, ActionEventArgs, CalendarType, WeekRule, EventSettingsModel, SpannedEventPlacement, EJ2Instance, CellTemplateArgs, GroupModel, TreeViewArgs, PopupOpenEventArgs, CurrentAction, getWeekNumber, getWeekLastDate, EventRenderedArgs, HeaderRowsModel, ToolbarItemsDirective, ToolbarItemDirective, ViewsModel, ResizeEventArgs, PopupCloseEventArgs, EventClickArgs, NavigatingEventArgs } from '@syncfusion/ej2-react-schedule';
-import { ClickEventArgs, SidebarComponent, AccordionComponent, AccordionItemsDirective, AccordionItemDirective, TreeViewComponent, DragAndDropEventArgs, ContextMenuComponent, BeforeOpenCloseMenuEventArgs, MenuEventArgs as ContextMenuEventArgs, MenuItemModel, ChangeEventArgs as SidebarChangeEventArgs, EventArgs as SidebarEventArgs } from '@syncfusion/ej2-react-navigations';
+import { AppBarComponent, MenuComponent, ClickEventArgs, SidebarComponent, AccordionComponent, AccordionItemsDirective, AccordionItemDirective, TreeViewComponent, DragAndDropEventArgs, ContextMenuComponent, BeforeOpenCloseMenuEventArgs, MenuEventArgs as ContextMenuEventArgs, MenuItemModel, ChangeEventArgs as SidebarChangeEventArgs, EventArgs as SidebarEventArgs } from '@syncfusion/ej2-react-navigations';
 import { ButtonComponent, CheckBoxComponent } from '@syncfusion/ej2-react-buttons';
 import { DropDownListComponent, ChangeEventArgs, FieldSettingsModel, MultiSelectComponent, CheckBoxSelection } from '@syncfusion/ej2-react-dropdowns';
 import { DropDownButtonComponent, ItemModel, MenuEventArgs } from '@syncfusion/ej2-react-splitbuttons';
@@ -132,6 +132,15 @@ export const App = () => {
   let isDateHeaderClicked: boolean;
   let isDateNavigationClicked: boolean;
 
+  let menuRef!: MenuComponent;
+  let menuMobileRef!: MenuComponent;
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  let isResized: boolean = false;
+  let isDesktop: boolean = true;
+  let isMenuDesktopOpened: boolean = false;
+  let isMenuMobileOpened: boolean = false;
+  let menuAppBarFields = { text: ['category', 'value'], children: ['options'] };
+
   const instance: Internationalization = new Internationalization();
   const [searchEventData, setSearchEventData] = useState<Object[]>([]);
   const headerRowsConfigRef = useRef<HeaderRowsModel[]>([
@@ -167,8 +176,8 @@ export const App = () => {
   const storedTooltipTemplateState = useRef(false);
   const storedEnableGroupingState = useRef(false);
   const storedResizingState = useRef(false);
-  const storedInlineEditingState =  useRef(false);
-  const storedAllowAddingState =  useRef(true);
+  const storedInlineEditingState = useRef(false);
+  const storedAllowAddingState = useRef(true);
   const localization = useRef<string | undefined>('en-US');
   const theme = useRef<string | null>('material3');
   const displayMode = useRef('Mouse');
@@ -842,6 +851,7 @@ export const App = () => {
     document.querySelector('.walkthrough-sidebar-left-overlay')?.classList.add('e-hidden');
     document.querySelector('.walkthrough-schedule-overlay')?.classList.add('e-hidden');
     document.querySelector('.schedule-overview-container')?.classList.remove('overlay');
+    document.querySelector('.App')?.classList.remove('overlay');
     document.querySelector('.sidebar-treeview')?.classList.remove('overlay');
     setStepIndex(-1);
   };
@@ -2384,6 +2394,104 @@ export const App = () => {
     calendarSidebarObj.current?.toggle();
   };
 
+  useEffect(() => {
+    const handleWindowResize = () => {
+      isResized = true;
+
+      if (isResized && (isMenuDesktopOpened || isMenuMobileOpened)) {
+        isResized = false;
+        menuRef?.close();
+        menuMobileRef?.close();
+      }
+    };
+    window.addEventListener('resize', handleWindowResize);
+
+    return () => {
+      window.removeEventListener('resize', handleWindowResize);
+    };
+  });
+
+  const menuItems = [
+    {
+      category: 'LEARNING',
+      options: [
+        {
+          icon: 'platform-image sf-icon-demos',
+          link: 'https://ej2.syncfusion.com/react/demos/#/tailwind3/schedule/overview',
+          title: 'Demos',
+          about: {
+            value: 'Explore our exciting product demos.',
+          },
+        },
+        {
+          icon: 'platform-image sf-icon-documentation',
+          link: 'https://ej2.syncfusion.com/react/documentation/schedule/getting-started',
+          title: 'Documentation',
+          about: {
+            value: 'Comprehensive guides for every product.',
+          },
+        },
+        {
+          icon: 'platform-image sf-icon-blog',
+          link: 'https://www.syncfusion.com/blogs/',
+          title: 'Blog',
+          about: {
+            value: 'Discover new ideas and perspectives.',
+          },
+        },
+        {
+          icon: 'platform-image sf-icon-tutorial-videos',
+          link: 'https://www.syncfusion.com/tutorial-videos/react/scheduler',
+          title: 'Tutorial Videos',
+          about: {
+            value: 'Sharpen your skills with our tutorial videos.',
+          },
+        },
+        {
+          icon: 'platform-image sf-icon-video-guide',
+          link: 'https://www.syncfusion.com/self-service-demo/react/',
+          title: 'Video Guides',
+          about: {
+            value: 'Explore key features in minutes with our quick video guides.',
+          },
+          isNew: true,
+        },
+        {
+          icon: 'platform-image sf-icon-showcase-app',
+          link: 'https://www.syncfusion.com/showcase-apps/react',
+          title: 'Showcase Apps',
+          about: {
+            value: 'Real-time apps built using our UI components.',
+          },
+          isNew: true,
+        }
+      ],
+    },
+  ];
+  const menuTemplate = (data: any) => {
+    return (
+      <a
+        href={data.link}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="menu-item"
+        data-title={data.title}
+      >
+        {data.category && (
+          <div className="menu-title">{data.category}</div>
+        )}
+        <div className="menusubitems">
+          <div className="icon-spacing">
+            <span className={data.icon} />
+          </div>
+          <span className="menu-item-title">{data.title}</span>
+          {data.isNew && <span className="e-badge">NEW</span>}
+        </div>
+        <div className="description">{data.about?.value}</div>
+      </a>
+    );
+  };
+
   // Add this function to handle toolbar overflow mode based on window width
   const updateToolbarOverflowMode = () => {
     const toolbarElement = document.querySelector('.e-schedule-toolbar') as HTMLElement;
@@ -2757,7 +2865,6 @@ export const App = () => {
       <div className="tooltip-wrap">
         <div className={"image " + props.EventType}></div>
         <div className="content-area"><div className="event-name">{props.Subject}</div>
-          {(props.Description !== null && props.Description !== undefined) ? <div className="description">{props.Description}</div> : ''}
           <div className="time">From&nbsp;:&nbsp;{props.StartTime.toLocaleString()}</div>
           <div className="time">To&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:&nbsp;{props.EndTime.toLocaleString()}</div>
         </div>
@@ -3391,6 +3498,78 @@ export const App = () => {
   const handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
     // Get the current selected category
     const selectedCategory = selectedItemRef.current?.text || "Scheduler Settings";
+    // Update dropdown values
+    setDropdownValues((prev) => {
+      if (scheduleObj.current) {
+        switch (selectedItemRef.current?.text) {
+          case "Calendar Settings":
+            scheduleObj.current.calendarMode = prev['calendarmode'] as CalendarType;
+            scheduleObj.current.firstDayOfWeek = Number(prev['firstdayofweek']);
+            scheduleObj.current.weekRule = prev['weekrule'] as WeekRule;
+            scheduleObj.current.timezone = prev['timezone'] as string;
+            scheduleObj.current.dateFormat = prev['dateformat'] ? String(prev['dateformat']) : undefined;
+            scheduleObj.current.firstMonthOfYear = prev['firstmonthofyear'] as number;
+            break;
+
+          case "Event Settings":
+            scheduleObj.current.eventSettings.resourceColorField = prev['resourcecolorfield'] as string;
+            scheduleObj.current.eventSettings.spannedEventPlacement = prev['spannedeventplacement'] as SpannedEventPlacement;
+            break;
+
+          case "Timescale Settings":
+            scheduleObj.current.timeFormat = String(prev['timeformat']);
+            scheduleObj.current.timeScale.interval = Number(prev['slotinterval']);
+            scheduleObj.current.timeScale.slotCount = Number(prev['slotcount']);
+            break;
+
+          case "Resource Settings":
+            if (prev['scrolltoresource']) {
+              setTimeout(() => {
+                scheduleObj.current.scrollToResource(prev['scrolltoresource'], 'Calendars'); // Perform the actio after the resource group is enabled. Since properties are enabled simlutaneously, we need to wait for a while
+              }, 500);
+            }
+            break;
+
+          case "Web Standards":
+            if (prev['themes']) {
+              const path: string = 'https://cdn.syncfusion.com/ej2/30.1.37/' + prev['themes'] + '.css';
+              const primaryThemeLink: HTMLLinkElement = document.querySelector('.theme-primary') as HTMLLinkElement;
+              const body: HTMLElement = document.body;
+              primaryThemeLink.href = path.toString();
+              if (theme.current) {
+                body.classList.remove(theme.current);
+              }
+              body.classList.add(prev['themes'] as string);
+              theme.current = prev['themes'] as string;
+            }
+
+            if (prev['localization']) {
+              localization.current = prev['localization'] as string;
+              setCulture(prev['localization'] as string);
+              if (localization.current === 'ar') {
+                ChangeRtl(true);
+              } else {
+                ChangeRtl(false);
+              }
+            }
+
+            if (prev['interactiontypes'] === 'Mouse') {
+              document.body.classList.remove('e-bigger');
+            } else {
+              document.body.classList.add('e-bigger');
+            }
+            break;
+        }
+      }
+
+      // Keep the state updated
+      Object.keys(dropdownValues).forEach((prop) => {
+        dropdownValues[prop] = prev[prop];
+      });
+
+      return { ...prev };
+    });
+
     // Update checkbox states
     setCheckboxStates((prev) => {
       if (scheduleObj.current) {
@@ -3715,78 +3894,6 @@ export const App = () => {
       // Keep the state updated
       Object.keys(checkboxStates).forEach((prop) => {
         checkboxStates[prop] = prev[prop];
-      });
-
-      return { ...prev };
-    });
-
-    // Update dropdown values
-    setDropdownValues((prev) => {
-      if (scheduleObj.current) {
-        switch (selectedItemRef.current?.text) {
-          case "Calendar Settings":
-            scheduleObj.current.calendarMode = prev['calendarmode'] as CalendarType;
-            scheduleObj.current.firstDayOfWeek = Number(prev['firstdayofweek']);
-            scheduleObj.current.weekRule = prev['weekrule'] as WeekRule;
-            scheduleObj.current.timezone = prev['timezone'] as string;
-            scheduleObj.current.dateFormat = prev['dateformat'] ? String(prev['dateformat']) : undefined;
-            scheduleObj.current.firstMonthOfYear = prev['firstmonthofyear'] as number;
-            break;
-
-          case "Event Settings":
-            scheduleObj.current.eventSettings.resourceColorField = prev['resourcecolorfield'] as string;
-            scheduleObj.current.eventSettings.spannedEventPlacement = prev['spannedeventplacement'] as SpannedEventPlacement;
-            break;
-
-          case "Timescale Settings":
-            scheduleObj.current.timeFormat = String(prev['timeformat']);
-            scheduleObj.current.timeScale.interval = Number(prev['slotinterval']);
-            scheduleObj.current.timeScale.slotCount = Number(prev['slotcount']);
-            break;
-
-          case "Resource Settings":
-            if (prev['scrolltoresource']) {
-              setTimeout(() => {
-                scheduleObj.current.scrollToResource(prev['scrolltoresource'], 'Calendars'); // Perform the actio after the resource group is enabled. Since properties are enabled simlutaneously, we need to wait for a while
-              }, 100);
-            }
-            break;
-
-          case "Web Standards":
-            if (prev['themes']) {
-              const path: string = 'https://cdn.syncfusion.com/ej2/30.1.37/' + prev['themes'] + '.css';
-              const primaryThemeLink: HTMLLinkElement = document.querySelector('.theme-primary') as HTMLLinkElement;
-              const body: HTMLElement = document.body;
-              primaryThemeLink.href = path.toString();
-              if (theme.current) {
-                body.classList.remove(theme.current);
-              }
-              body.classList.add(prev['themes'] as string);
-              theme.current = prev['themes'] as string;
-            }
-
-            if (prev['localization']) {
-              localization.current = prev['localization'] as string;
-              setCulture(prev['localization'] as string);
-              if (localization.current === 'ar') {
-                ChangeRtl(true);
-              } else {
-                ChangeRtl(false);
-              }
-            }
-
-            if (prev['interactiontypes'] === 'Mouse') {
-              document.body.classList.remove('e-bigger');
-            } else {
-              document.body.classList.add('e-bigger');
-            }
-            break;
-        }
-      }
-
-      // Keep the state updated
-      Object.keys(dropdownValues).forEach((prop) => {
-        dropdownValues[prop] = prev[prop];
       });
 
       return { ...prev };
@@ -5022,7 +5129,7 @@ export const App = () => {
         <div className='download-button-container'>
           <a
             id="download-now-button"
-            href="https://www.syncfusion.com/downloads/react?tag=es-livesample-react-featurerich-schedule" className="btn btn-free bold free-trial-gtag-sep15"
+            href="https://www.syncfusion.com/downloads/react" className="btn btn-free bold free-trial-gtag-sep15"
           >
             <span className="btn__text">TRY IT FREE</span>
           </a>
@@ -5592,7 +5699,136 @@ export const App = () => {
   return (
     <>
       <div id="overalContainer" onClick={(e: any) => { removeWalkthrough(e) }}>
-        <ScheduleDisplayData />
+        <div className="App overlay">
+          {stepIndex >= 0 && stepIndex < steps.length && (
+            <div className="walkthrough-display-data-overlay" />
+          )}
+          <AppBarComponent colorMode="Dark" cssClass="appbar">
+            <div className="syncfusion-logo">
+              <a className="sync-logo-img" title="Syncfusion" aria-label="Syncfusion logo" href="https://www.syncfusion.com/">
+              </a>
+            </div>
+            <div className="e-appbar-separator"></div>
+            <div>
+              <span className="title">Feature Rich React Schedule</span>
+            </div>
+
+            {isDesktop && (
+              <>
+                <div id="github" className={localization.current === 'ar' ? 'desktop-only-rtl' : 'desktop-only'}>
+                  <span className="githubdemo"> <span> <i className="fab fa-github"></i> </span>
+                    <a href="https://github.com/SyncfusionExamples/react-feature-rich-schedule" target="_blank" rel="noopener noreferrer"
+                      style={{ textDecoration: 'none', color: 'white', fontSize: '15px' }}>GitHub</a></span>
+                </div>
+
+                <div id="menu" className="desktop-only">
+                  <MenuComponent id="listmenu" ref={(list: any) => menuRef = list}
+                    items={menuItems}
+                    showItemOnClick={true}
+                    fields={menuAppBarFields}
+                    template={menuTemplate}
+                    cssClass="e-template-menu"
+                    onOpen={() => {
+                      isMenuDesktopOpened = true;
+                    }}
+                  ></MenuComponent>
+                </div>
+                <div id="demo" className="desktop-only">
+                  <a
+                    id="book-free-demo" target="_blank"
+                    href="https://www.syncfusion.com/request-demo"
+                  >
+                    <span className="bookdemo">BOOK A FREE DEMO</span>
+                  </a>
+                </div>
+                <div id="tryfreebutton" className="desktop-only">
+                  <a
+                    id="download-now-button" target="_blank"
+                    href="https://www.syncfusion.com/downloads/react"
+                    className="menu-item btn btn-primary"
+                  >
+                    <span className="tryfree">TRY IT FREE</span>
+                  </a>
+                </div>
+              </>
+            )}
+
+            {/* Hamburger icon for mobile */}
+            <div className={localization.current === 'ar' ? 'hamburger mobile-only-rtl' : 'hamburger mobile-only'}
+              onClick={() => {
+                setMobileMenuOpen(!mobileMenuOpen)
+              }
+              }
+            >
+              ☰
+            </div>
+
+          </AppBarComponent >
+
+          {/* Popup menu for mobile */}
+
+          {mobileMenuOpen && (<div className="popup-menu mobile-only">
+
+            <div id="github" className="mobile-only" style={{ display: 'flex', alignItems: 'center' }}>
+              <span className="githubdemo" style={{ display: 'flex', alignItems: 'center' }}>
+                <span style={{ padding: '2px', color: 'white' }}>
+                  <i className="fab fa-github"></i>
+                </span>
+                <a
+                  href="https://github.com/SyncfusionExamples/react-feature-rich-schedule"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{ textDecoration: 'none', color: 'white', fontSize: '15px', marginLeft: '5px' }}>GitHub</a></span>
+            </div> <hr className="separator-line-mobile" />
+            <div id="menumobile" className="mobile-only">
+              <MenuComponent id="listmenu" ref={(list: any) => menuMobileRef = list}
+                items={menuItems}
+                showItemOnClick={true}
+                enableScrolling={true}
+                fields={menuAppBarFields}
+                template={menuTemplate}
+                cssClass="e-template-menu"
+                onOpen={() => {
+                  isMenuMobileOpened = true;
+                }}
+                beforeOpen={(e) => {
+                  if (e.parentItem.category === 'LEARNING') {
+                    (closest(e.element, '.e-menu-wrapper') as HTMLElement).style.height = '250px';
+                  }
+                  const menuWrapper = document.getElementById("menumobile");
+                  if (menuWrapper) {
+                    (menuWrapper as HTMLElement).style.setProperty('height', '300px', 'important');
+                  }
+                }}
+                beforeClose={(e) => {
+                  const menuWrapper = document.getElementById("menumobile");
+                  if (menuWrapper) {
+                    (menuWrapper as HTMLElement).style.setProperty('height', '');
+                  }
+                }}
+              ></MenuComponent>
+            </div>
+            <hr className="separator-line-mobile" />
+            <div id="demo" className="mobile-only">
+              <a
+                id="book-free-demo" target="_blank"
+                href="https://www.syncfusion.com/request-demo"
+              >
+                <span className="bookdemo">BOOK A FREE DEMO</span>
+              </a>
+            </div> <hr className="separator-line-mobile" />
+            <div className="mobile-only">
+              <a
+                id="download-now-button" target="_blank"
+                href="https://www.syncfusion.com/downloads/react"
+                className="btn btn-free bold free-trial-gtag-sep15"
+              >
+                <span className="tryfree">TRY IT FREE</span>
+              </a>
+            </div>
+          </div>
+          )}
+        </div>
         {memoizedSchedule}
         {memoizedGrid}
         {stepIndex >= 0 && stepIndex < steps.length && (
