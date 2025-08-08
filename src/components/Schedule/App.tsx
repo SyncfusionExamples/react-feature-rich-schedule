@@ -1029,7 +1029,6 @@ export const App = () => {
   };
 
   const checkboxCreated = (id: string, checkboxReference: Record<string, CheckBoxComponent>) => {
-
     // For celltemplate checkbox - disable allowadding if initially checked
     if (id === 'celltemplate') {
       if (checkboxReference[id] && checkboxStates[id]) {
@@ -1301,7 +1300,6 @@ export const App = () => {
         dropdownReference[id].enabled = isTimescaleEnabled;
       }
     }
-
   };
 
   const timepickerCreated = (id: string, timepickerReference: Record<string, TimePickerComponent>) => {
@@ -1967,7 +1965,7 @@ export const App = () => {
       if (id === 'eventtemplate' || id === 'celltemplate' || id === 'headerrow' || id === 'headerrowstemplate') {
         newValues['enablegrouping'] = false;
       }
-
+      tempCheckboxStates = newValues;
       return newValues;
     });
   };
@@ -2183,7 +2181,7 @@ export const App = () => {
     ]
   }
 
-  const [datePickerValues, setDatePickerValues] = useState<{ [key: string]: string }>(() => {
+  let [datePickerValues, setDatePickerValues] = useState<{ [key: string]: string }>(() => {
     const initialValues: Record<string, string> = {};
     // Initialize from checkbox configurations
     Object.values(checkboxConfigurations).forEach((category) => {
@@ -2217,7 +2215,7 @@ export const App = () => {
     return initialValues;
   });
 
-  const [dropdownValues, setDropdownValues] = useState<{ [key: string]: string | number }>(() => {
+  let [dropdownValues, setDropdownValues] = useState<{ [key: string]: string | number }>(() => {
     const initialValues: Record<string, string | number> = {};
 
     // Initialize from checkbox configurations
@@ -2239,7 +2237,7 @@ export const App = () => {
     return initialValues;
   });
 
-  const [timePickerValues, setTimePickerValues] = useState<{ [key: string]: Date }>(() => {
+  let [timePickerValues, setTimePickerValues] = useState<{ [key: string]: Date }>(() => {
     const initialValues: Record<string, Date> = {};
 
     // Initialize from checkbox configurations
@@ -2272,7 +2270,7 @@ export const App = () => {
   type MultiSelectValue = number | string | boolean | object;// Or number if you only use numbers
   type MultiSelectState = Record<string, MultiSelectValue[]>;
 
-  const [multiSelectValues, setMultiSelectValues] = useState<MultiSelectState>(() => {
+  let [multiSelectValues, setMultiSelectValues] = useState<MultiSelectState>(() => {
     const initialValues: MultiSelectState = {};
 
     // Initialize with workDaysView for the 'workdays' field
@@ -2295,7 +2293,7 @@ export const App = () => {
     return initialValues;
   });
 
-  const [numericTextboxValues, setNumericTextboxValues] = useState<Record<string, number>>(() => {
+  let [numericTextboxValues, setNumericTextboxValues] = useState<Record<string, number>>(() => {
     const initialValues: Record<string, number> = {};
 
     // Add any other numeric textbox initial values from configurations
@@ -2314,7 +2312,43 @@ export const App = () => {
     return initialValues;
   });
 
-  const [checkboxStates, setCheckboxStates] = useState<Record<string, boolean>>(() => {
+  let [checkboxStates, setCheckboxStates] = useState<Record<string, boolean>>(() => {
+    const initialState: Record<string, boolean> = {};
+
+    Object.keys(checkboxConfigurations).forEach((category) => {
+      const categoryItems = checkboxConfigurations[category as keyof typeof checkboxConfigurations];
+
+      categoryItems.forEach((item) => {
+        if ('groupField' in item) {
+          // Item is a CheckboxGroup
+          const groupItems = (item as CheckboxGroup).items;
+
+          if (Array.isArray(groupItems)) {
+            groupItems.forEach((checkbox) => {
+              if ('defaultChecked' in checkbox) {
+                initialState[checkbox.id] = checkbox.defaultChecked ?? false;
+
+                // If enablegrouping is initially false, mark dependent controls as disabled
+                if (!initialState['enablegrouping']) {
+                  initialState['allowgroupedit_disabled'] = true;
+                  initialState['resourceheader_disabled'] = true;
+                  initialState['scrolltoresource_disabled'] = true;
+                  initialState['expandedfield_disabled'] = true;
+                }
+              }
+            });
+          }
+        } else if ('defaultChecked' in item) {
+          // Item is a CheckboxConfig with defaultChecked property
+          initialState[item.id] = item.defaultChecked ?? false;
+        }
+      });
+    });
+
+    return initialState;
+  });
+
+    let [tempCheckboxStates, setTempCheckboxStates] = useState<Record<string, boolean>>(() => {
     const initialState: Record<string, boolean> = {};
 
     Object.keys(checkboxConfigurations).forEach((category) => {
@@ -3351,6 +3385,7 @@ export const App = () => {
           }));
         }
       }
+      dropdownValues = newState;
       return newState;
     });
   }
@@ -3418,6 +3453,7 @@ export const App = () => {
         ...prev,
         [fieldId]: values
       };
+      multiSelectValues = newState;
       return newState;
     });
   }
@@ -3542,7 +3578,6 @@ export const App = () => {
               body.classList.add(prev['themes'] as string);
               theme.current = prev['themes'] as string;
             }
-
             if (prev['localization']) {
               localization.current = prev['localization'] as string;
               setCulture(prev['localization'] as string);
@@ -3895,7 +3930,6 @@ export const App = () => {
       Object.keys(checkboxStates).forEach((prop) => {
         checkboxStates[prop] = prev[prop];
       });
-
       return { ...prev };
     });
 
@@ -4026,6 +4060,7 @@ export const App = () => {
         ...prevState,
         ...(value && { [timepickerId]: value }) // Only add the key if value is not null
       };
+      timePickerValues = newState;
       return newState;
     });
   }
@@ -4056,15 +4091,20 @@ export const App = () => {
           newState.minDatePicker = value;
         }
       }
+      datePickerValues = newState;
       return newState;
     });
   }
 
   const onNumericTextboxChange = (numericTextboxId: string, value: number): void => {
-    setNumericTextboxValues(prev => ({
-      ...prev,
-      [numericTextboxId]: value || 0
-    }));
+    setNumericTextboxValues((prev) => {
+      const newState = {
+        ...prev,
+        [numericTextboxId]: value || 0
+      };
+      numericTextboxValues = newState;
+      return newState;
+    });
   }
 
   const buttonClickActions = (e: React.MouseEvent<HTMLButtonElement>) => {
@@ -4328,7 +4368,7 @@ export const App = () => {
                               }}
                               cssClass={localization.current === 'ar' ? "checkbox-content e-rtl" : "checkbox-content"}
                               label={groupItem.label}
-                              checked={checkboxStates[groupItem.id] ?? groupItem.defaultChecked}
+                              checked={tempCheckboxStates[groupItem.id] ?? groupItem.defaultChecked}
                               created={() => checkboxCreated(groupItem.id, checkboxRefs.current)}
                               change={(e) => handleCheckboxChange(groupItem.id, e.checked, checkboxRefs.current)}
                             />
@@ -4501,7 +4541,7 @@ export const App = () => {
                             }}
                             cssClass={localization.current === 'ar' ? "e-group-checkbox e-rtl" : "e-group-checkbox"}
                             label={groupItem.label}
-                            checked={checkboxStates[groupItem.id] ?? groupItem.defaultChecked}
+                            checked={tempCheckboxStates[groupItem.id] ?? groupItem.defaultChecked}
                             created={() => checkboxCreated(groupItem.id, checkboxRefs.current)}
                             change={(e) => handleCheckboxChange(groupItem.id, e.checked, checkboxRefs.current)}
                           />
